@@ -25,8 +25,8 @@ public static class PrototypeBuilder
     public static void Build()
     {
         EnsureFolders(); CreateSprites(); CreateMaterial();
-        BuildPrefabs(); BuildMenu(); BuildStage(1); BuildStage(2); BuildStage(3); BuildComplete();
-        EditorBuildSettings.scenes = new[] { "MainMenu", "Stage_01", "Stage_02", "Stage_03", "PrototypeComplete" }
+        BuildPrefabs(); BuildMenu(); for(int stage=1;stage<=20;stage++) BuildStage(stage); BuildComplete();
+        EditorBuildSettings.scenes = new[] { "MainMenu" }.Concat(Enumerable.Range(1,20).Select(i=>$"Stage_{i:00}")).Append("PrototypeComplete")
             .Select(n => new EditorBuildSettingsScene($"Assets/Scenes/{n}.unity", true)).ToArray();
         PlayerSettings.defaultScreenWidth = 1920; PlayerSettings.defaultScreenHeight = 1080;
         PlayerSettings.productName = "Mindful Run Prototype";
@@ -65,13 +65,13 @@ public static class PrototypeBuilder
     {
         var player=new GameObject("Player",typeof(Rigidbody2D),typeof(CapsuleCollider2D),typeof(PlayerController2D)); player.layer=6;
         var rb=player.GetComponent<Rigidbody2D>();rb.gravityScale=1;rb.collisionDetectionMode=CollisionDetectionMode2D.Continuous;rb.interpolation=RigidbodyInterpolation2D.Interpolate;rb.freezeRotation=true;
-        var col=player.GetComponent<CapsuleCollider2D>();col.size=new Vector2(.62f,1.65f);col.sharedMaterial=AssetDatabase.LoadAssetAtPath<PhysicsMaterial2D>("Assets/Materials/NoFriction.physicsMaterial2D");
+        var col=player.GetComponent<CapsuleCollider2D>();col.size=new Vector2(.46f,1.72f);col.sharedMaterial=AssetDatabase.LoadAssetAtPath<PhysicsMaterial2D>("Assets/Materials/NoFriction.physicsMaterial2D");
         var controllerSettings=new SerializedObject(player.GetComponent<PlayerController2D>());controllerSettings.FindProperty("groundMask").intValue=1;controllerSettings.ApplyModifiedPropertiesWithoutUndo();
         var rig=new GameObject("OriginalStickFigure",typeof(StickFigureAnimator));rig.transform.SetParent(player.transform,false);
-        var head=Visual("Head",rig.transform,circle,new Vector2(0,.58f),new Vector2(.42f,.42f),Ink,2);
-        var torso=Visual("Torso",rig.transform,square,new Vector2(0,.05f),new Vector2(.12f,.72f),Ink,1);
-        var la=Limb("LeftArm",rig.transform,new Vector2(-.08f,.25f),-.42f); var ra=Limb("RightArm",rig.transform,new Vector2(.08f,.25f),.42f);
-        var ll=Limb("LeftLeg",rig.transform,new Vector2(-.06f,-.28f),-.48f); var rl=Limb("RightLeg",rig.transform,new Vector2(.06f,-.28f),.48f);
+        var head=Visual("Head",rig.transform,circle,new Vector2(0,.64f),new Vector2(.31f,.31f),Ink,2);
+        var torso=Visual("Torso",rig.transform,square,new Vector2(0,.08f),new Vector2(.075f,.83f),Ink,1);
+        var la=Limb("LeftArm",rig.transform,new Vector2(-.04f,.33f),-.46f); var ra=Limb("RightArm",rig.transform,new Vector2(.04f,.33f),.46f);
+        var ll=Limb("LeftLeg",rig.transform,new Vector2(-.035f,-.34f),-.54f); var rl=Limb("RightLeg",rig.transform,new Vector2(.035f,-.34f),.54f);
         var anim=rig.GetComponent<StickFigureAnimator>();var so=new SerializedObject(anim);so.FindProperty("leftArm").objectReferenceValue=la.transform;so.FindProperty("rightArm").objectReferenceValue=ra.transform;so.FindProperty("leftLeg").objectReferenceValue=ll.transform;so.FindProperty("rightLeg").objectReferenceValue=rl.transform;so.FindProperty("torso").objectReferenceValue=torso.transform;
         var arr=so.FindProperty("renderers");arr.arraySize=6;var rs=rig.GetComponentsInChildren<SpriteRenderer>();for(int i=0;i<6;i++)arr.GetArrayElementAtIndex(i).objectReferenceValue=rs[i];so.ApplyModifiedPropertiesWithoutUndo();
         SavePrefab(player,"Assets/Prefabs/Player/Player.prefab");
@@ -82,29 +82,55 @@ public static class PrototypeBuilder
         var warning=Visual("WarningShadow",falling.transform,square,new Vector2(0,-1.9f),new Vector2(1.1f,.12f),new Color(1,.4f,0,.65f));warning.GetComponent<SpriteRenderer>().enabled=false;
         var block=Visual("Block",falling.transform,square,new Vector2(0,2.2f),new Vector2(1.15f,1.15f),Danger);var br=block.AddComponent<Rigidbody2D>();br.bodyType=RigidbodyType2D.Kinematic;br.gravityScale=3;block.AddComponent<BoxCollider2D>();block.AddComponent<Hazard>();
         var fs=new SerializedObject(falling.GetComponent<FallingBlock>());fs.FindProperty("blockBody").objectReferenceValue=br;fs.FindProperty("warning").objectReferenceValue=warning.GetComponent<SpriteRenderer>();fs.ApplyModifiedPropertiesWithoutUndo();SavePrefab(falling,"Assets/Prefabs/Obstacles/FallingBlock.prefab");
-        var exit=Visual("ExitZone",null,square,Vector2.zero,new Vector2(.15f,2.3f),new Color(.1f,.55f,.35f));exit.AddComponent<BoxCollider2D>().isTrigger=true;exit.AddComponent<ExitZone>();SavePrefab(exit,"Assets/Prefabs/Obstacles/ExitZone.prefab");
+        var exit=Visual("ExitFlag",null,square,Vector2.zero,new Vector2(.09f,2.4f),Ink);exit.AddComponent<BoxCollider2D>().isTrigger=true;exit.GetComponent<BoxCollider2D>().size=new Vector2(5,1);exit.AddComponent<ExitZone>();
+        Visual("Flag",exit.transform,triangle,new Vector2(.55f,.82f),new Vector2(1.05f,.72f),new Color(.1f,.55f,.35f),1).transform.localRotation=Quaternion.Euler(0,0,-90);SavePrefab(exit,"Assets/Prefabs/Obstacles/ExitZone.prefab");
+        var collapsing=Visual("CollapsingPlatform",null,square,Vector2.zero,new Vector2(2.6f,.32f),Ink);collapsing.AddComponent<BoxCollider2D>();collapsing.AddComponent<Rigidbody2D>();collapsing.AddComponent<CollapsingPlatform>();SavePrefab(collapsing,"Assets/Prefabs/Obstacles/CollapsingPlatform.prefab");
+        var rising=new GameObject("RisingSpikeTrap",typeof(BoxCollider2D),typeof(RisingSpikeTrap));rising.GetComponent<BoxCollider2D>().isTrigger=true;rising.GetComponent<BoxCollider2D>().size=new Vector2(3.2f,3.2f);
+        var spikeRoot=new GameObject("Spikes");spikeRoot.transform.SetParent(rising.transform,false);spikeRoot.transform.localPosition=new Vector3(0,-1.25f,0);for(int i=-1;i<=1;i++){var s=Visual("Spike",spikeRoot.transform,triangle,new Vector2(i*.55f,0),new Vector2(.62f,.7f),Danger,2);s.AddComponent<BoxCollider2D>().isTrigger=true;s.AddComponent<Hazard>();}
+        var riseWarning=Visual("Warning",rising.transform,square,new Vector2(0,-.55f),new Vector2(1.7f,.07f),new Color(1,.45f,0,.8f));riseWarning.GetComponent<SpriteRenderer>().enabled=false;var riseSo=new SerializedObject(rising.GetComponent<RisingSpikeTrap>());riseSo.FindProperty("spikes").objectReferenceValue=spikeRoot.transform;riseSo.FindProperty("warning").objectReferenceValue=riseWarning.GetComponent<SpriteRenderer>();riseSo.ApplyModifiedPropertiesWithoutUndo();SavePrefab(rising,"Assets/Prefabs/Obstacles/RisingSpikeTrap.prefab");
+        var crusher=new GameObject("CrushingBlockTrap",typeof(BoxCollider2D),typeof(CrushingBlockTrap));crusher.GetComponent<BoxCollider2D>().isTrigger=true;crusher.GetComponent<BoxCollider2D>().size=new Vector2(3.4f,4);
+        var shadow=Visual("WarningShadow",crusher.transform,square,new Vector2(0,-1.8f),new Vector2(1.2f,.1f),new Color(1,.45f,0,.7f));shadow.GetComponent<SpriteRenderer>().enabled=false;var crushBlock=Visual("CrushingBlock",crusher.transform,square,new Vector2(0,2.2f),new Vector2(1.25f,1.25f),Danger);var crushBody=crushBlock.AddComponent<Rigidbody2D>();crushBody.bodyType=RigidbodyType2D.Kinematic;crushBlock.AddComponent<BoxCollider2D>();crushBlock.AddComponent<Hazard>();var crushSo=new SerializedObject(crusher.GetComponent<CrushingBlockTrap>());crushSo.FindProperty("block").objectReferenceValue=crushBody;crushSo.FindProperty("warningShadow").objectReferenceValue=shadow.GetComponent<SpriteRenderer>();crushSo.ApplyModifiedPropertiesWithoutUndo();SavePrefab(crusher,"Assets/Prefabs/Obstacles/CrushingBlockTrap.prefab");
         var launcher=Visual("ProjectileLauncher_PLACEHOLDER",null,square,Vector2.zero,Vector2.one,Ink);launcher.AddComponent<ProjectileLauncherPlaceholder>();SavePrefab(launcher,"Assets/Prefabs/Obstacles/ProjectileLauncher.prefab");
         var moving=Visual("MovingPlatform_PLACEHOLDER",null,square,Vector2.zero,new Vector2(3,.35f),Ink);moving.AddComponent<BoxCollider2D>();moving.AddComponent<MovingPlatformPlaceholder>();SavePrefab(moving,"Assets/Prefabs/Obstacles/MovingPlatform.prefab");
     }
-    static GameObject Limb(string name,Transform parent,Vector2 pos,float x){var pivot=new GameObject(name);pivot.transform.SetParent(parent,false);pivot.transform.localPosition=pos;Visual("Shape",pivot.transform,square,new Vector2(x/2,-.22f),new Vector2(.09f,.58f),Ink,0);return pivot;}
+    static GameObject Limb(string name,Transform parent,Vector2 pos,float x){var pivot=new GameObject(name);pivot.transform.SetParent(parent,false);pivot.transform.localPosition=pos;Visual("Shape",pivot.transform,square,new Vector2(x/2,-.24f),new Vector2(.055f,.64f),Ink,0);return pivot;}
     static void SavePrefab(GameObject go,string path){PrefabUtility.SaveAsPrefabAsset(go,path);UnityEngine.Object.DestroyImmediate(go);}
 
     static void BaseScene(out GameObject player,out StageManager manager,int stage,string next)
     {
         var scene=EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);scene.name=$"Stage_{stage:00}";
-        var cam=new GameObject("Main Camera",typeof(Camera),typeof(SmoothCameraFollow));cam.tag="MainCamera";cam.GetComponent<Camera>().orthographic=true;cam.GetComponent<Camera>().orthographicSize=5.4f;cam.GetComponent<Camera>().backgroundColor=Paper;cam.transform.position=new Vector3(4,2.5f,-10);
+        var cam=new GameObject("Main Camera",typeof(Camera),typeof(SmoothCameraFollow));cam.tag="MainCamera";cam.GetComponent<Camera>().orthographic=true;cam.GetComponent<Camera>().orthographicSize=5.4f;cam.GetComponent<Camera>().backgroundColor=Paper;cam.transform.position=new Vector3(4,2.5f,-10);var camSo=new SerializedObject(cam.GetComponent<SmoothCameraFollow>());camSo.FindProperty("xBounds").vector2Value=new Vector2(0,52);camSo.ApplyModifiedPropertiesWithoutUndo();
         player=(GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player/Player.prefab"));player.transform.position=new Vector3(-3,-.05f,0);
         var sm=new GameObject("StageManager",typeof(StageManager),typeof(PlayerBehaviorTracker));manager=sm.GetComponent<StageManager>();var so=new SerializedObject(manager);so.FindProperty("stageNumber").intValue=stage;so.FindProperty("nextSceneName").stringValue=next;so.FindProperty("player").objectReferenceValue=player.GetComponent<PlayerController2D>();so.FindProperty("tracker").objectReferenceValue=sm.GetComponent<PlayerBehaviorTracker>();so.ApplyModifiedPropertiesWithoutUndo();
         var tr=new SerializedObject(sm.GetComponent<PlayerBehaviorTracker>());tr.FindProperty("player").objectReferenceValue=player.GetComponent<PlayerController2D>();tr.ApplyModifiedPropertiesWithoutUndo();
-        AddStageUI(stage,sm.transform); Platform("Start",new Vector2(-2,-1),new Vector2(7,.5f));
+        AddStageUI(stage,sm.transform); Platform("Start",new Vector2(-2,-1),new Vector2(6,.5f));
     }
     static void BuildStage(int stage)
     {
-        string next=stage<3?$"Stage_{stage+1:00}":"PrototypeComplete";BaseScene(out var player,out var manager,stage,next);
-        if(stage==1){Platform("FarFloor",new Vector2(7,-1),new Vector2(9,.5f));Platform("Raised",new Vector2(4.2f,.1f),new Vector2(3,.45f));Exit(new Vector2(11,-.1f));}
-        if(stage==2){Platform("Floor",new Vector2(8,-1),new Vector2(20,.5f));for(int i=0;i<4;i++)Prefab("Assets/Prefabs/Obstacles/TimedSpike.prefab",new Vector2(2.5f+i*.85f,-.42f));Exit(new Vector2(15,-.1f));}
-        if(stage==3){Platform("Floor",new Vector2(9,-1),new Vector2(22,.5f));Prefab("Assets/Prefabs/Obstacles/FallingBlock.prefab",new Vector2(4.5f,1.2f));Visual("WaitHint",null,square,new Vector2(1.2f,-.6f),new Vector2(.5f,.08f),new Color(1,.5f,0));Exit(new Vector2(17,-.1f));}
+        string next=stage<20?$"Stage_{stage+1:00}":"PrototypeComplete";BaseScene(out var player,out var manager,stage,next);
+        BuildComplexLayout(stage); Exit(new Vector2(49,1.15f));
         EditorSceneManager.SaveScene(SceneManager.GetActiveScene(),$"Assets/Scenes/Stage_{stage:00}.unity");
+    }
+    static void BuildComplexLayout(int stage)
+    {
+        var rng=new System.Random(1701+stage*97);float x=2.2f;float y=-.7f;int segments=6+stage/7;
+        for(int i=0;i<segments;i++)
+        {
+            float width=2.8f+(float)rng.NextDouble()*1.2f;float nextY=Mathf.Clamp(y+(rng.Next(-1,2)*.75f),-.7f,2.3f);x+=width*.5f+.65f;
+            bool collapse=stage>=4&&(i+stage)%4==0;
+            if(collapse){var p=Prefab("Assets/Prefabs/Obstacles/CollapsingPlatform.prefab",new Vector2(x,nextY));p.transform.localScale=new Vector3(width/2.6f,1,1);}
+            else Platform($"Platform_{i:00}",new Vector2(x,nextY),new Vector2(width,.42f));
+            int trap=(stage+i*3)%7;
+            if(stage>=2&&trap==0)for(int s=0;s<2;s++)Prefab("Assets/Prefabs/Obstacles/TimedSpike.prefab",new Vector2(x-.35f+s*.7f,nextY+.5f));
+            if(stage>=3&&trap==1)Prefab("Assets/Prefabs/Obstacles/FallingBlock.prefab",new Vector2(x,nextY+2.1f));
+            if(stage>=5&&trap==2)Prefab("Assets/Prefabs/Obstacles/RisingSpikeTrap.prefab",new Vector2(x,nextY+1.35f));
+            if(stage>=6&&trap==3)Prefab("Assets/Prefabs/Obstacles/CrushingBlockTrap.prefab",new Vector2(x,nextY+2.1f));
+            if(stage>=8&&trap==4){var mover=Prefab("Assets/Prefabs/Obstacles/MovingPlatform.prefab",new Vector2(x,nextY+1.2f));mover.transform.localScale=new Vector3(.65f,.8f,1);}
+            if(stage>=10&&trap==5)for(int s=-1;s<=1;s++)Prefab("Assets/Prefabs/Obstacles/StaticSpike.prefab",new Vector2(x+s*.68f,nextY+.48f));
+            if(stage>=12&&i%3==1)Platform("CeilingPressure",new Vector2(x,nextY+3.15f),new Vector2(width*.8f,.35f));
+            x+=width*.5f+.7f+(float)rng.NextDouble()*.35f;y=nextY;
+        }
+        Platform("FinalApproach",new Vector2(46,0),new Vector2(5.8f,.45f));
     }
     static void Platform(string name,Vector2 pos,Vector2 scale){var go=Visual(name,null,square,pos,scale,Ink);go.AddComponent<BoxCollider2D>();}
     static GameObject Prefab(string path,Vector2 pos){var go=(GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(path));go.transform.position=pos;return go;}
@@ -118,7 +144,7 @@ public static class PrototypeBuilder
         var ps=new SerializedObject(pause.GetComponent<PauseMenu>());ps.FindProperty("panel").objectReferenceValue=panel;ps.ApplyModifiedPropertiesWithoutUndo();panel.SetActive(false);
     }
     static void BuildMenu(){EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);SimpleCamera();var c=CanvasRoot("TitleCanvas");var actions=new GameObject("MenuActions",typeof(MenuActions)).GetComponent<MenuActions>();Label(c.transform,"MINDFUL RUN",new Vector2(0,150),TextAnchor.MiddleCenter,72,new Vector2(900,130),true);Label(c.transform,"A minimalist obstacle study",new Vector2(0,60),TextAnchor.MiddleCenter,26,new Vector2(800,60));Button(c.transform,"BEGIN",new Vector2(0,-60),actions.Play);Button(c.transform,"QUIT",new Vector2(0,-150),actions.Quit);EditorSceneManager.SaveScene(SceneManager.GetActiveScene(),"Assets/Scenes/MainMenu.unity");}
-    static void BuildComplete(){EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);SimpleCamera();var c=CanvasRoot("CompleteCanvas");var actions=new GameObject("MenuActions",typeof(MenuActions)).GetComponent<MenuActions>();Label(c.transform,"PROTOTYPE COMPLETE",new Vector2(0,100),TextAnchor.MiddleCenter,60,new Vector2(1100,110),true);Label(c.transform,"Three stages cleared. Behavior data was logged to the Console.",new Vector2(0,10),TextAnchor.MiddleCenter,24,new Vector2(1100,70));Button(c.transform,"TITLE",new Vector2(0,-110),actions.Title);EditorSceneManager.SaveScene(SceneManager.GetActiveScene(),"Assets/Scenes/PrototypeComplete.unity");}
+    static void BuildComplete(){EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);SimpleCamera();var c=CanvasRoot("CompleteCanvas");var actions=new GameObject("MenuActions",typeof(MenuActions)).GetComponent<MenuActions>();Label(c.transform,"PROTOTYPE COMPLETE",new Vector2(0,100),TextAnchor.MiddleCenter,60,new Vector2(1100,110),true);Label(c.transform,"Twenty stages cleared. Behavior data was logged to the Console.",new Vector2(0,10),TextAnchor.MiddleCenter,24,new Vector2(1100,70));Button(c.transform,"TITLE",new Vector2(0,-110),actions.Title);EditorSceneManager.SaveScene(SceneManager.GetActiveScene(),"Assets/Scenes/PrototypeComplete.unity");}
     static void SimpleCamera(){var cam=new GameObject("Main Camera",typeof(Camera));cam.tag="MainCamera";cam.GetComponent<Camera>().backgroundColor=Paper;cam.GetComponent<Camera>().orthographic=true;cam.transform.position=new Vector3(0,0,-10);}
     static Canvas CanvasRoot(string name){var go=new GameObject(name,typeof(Canvas),typeof(CanvasScaler),typeof(GraphicRaycaster));var c=go.GetComponent<Canvas>();c.renderMode=RenderMode.ScreenSpaceOverlay;var s=go.GetComponent<CanvasScaler>();s.uiScaleMode=CanvasScaler.ScaleMode.ScaleWithScreenSize;s.referenceResolution=new Vector2(1920,1080);new GameObject("EventSystem",typeof(UnityEngine.EventSystems.EventSystem),typeof(UnityEngine.InputSystem.UI.InputSystemUIInputModule));return c;}
     static Text Label(Transform parent,string value,Vector2 pos,TextAnchor anchor,int size,Vector2 dims,bool bold=false){var go=new GameObject(value,typeof(RectTransform),typeof(Text));go.transform.SetParent(parent,false);var rt=go.GetComponent<RectTransform>();rt.sizeDelta=dims;rt.anchoredPosition=pos;if(anchor==TextAnchor.UpperLeft){rt.anchorMin=rt.anchorMax=new Vector2(0,1);rt.pivot=new Vector2(0,1);}var t=go.GetComponent<Text>();t.text=value;t.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");t.fontSize=size;t.color=anchor==TextAnchor.UpperLeft?Ink:Color.white;t.alignment=anchor;t.fontStyle=bold?FontStyle.Bold:FontStyle.Normal;return t;}
