@@ -12,11 +12,13 @@ namespace MindfulRun.Core
         [SerializeField] string nextSceneName;
         [SerializeField] PlayerController2D player;
         [SerializeField] PlayerBehaviorTracker tracker;
+        [SerializeField] float fallDeathY = -7.5f;
         bool transitioning;
         public int StageNumber => stageNumber;
         void Start() { if (!player) player = FindFirstObjectByType<PlayerController2D>(); if (!tracker) tracker = FindFirstObjectByType<PlayerBehaviorTracker>(); tracker?.Initialize(stageNumber); }
         void Update()
         {
+            if (!transitioning && player && player.transform.position.y < fallDeathY) KillPlayer();
             if (UnityEngine.InputSystem.Keyboard.current?.rKey.wasPressedThisFrame == true) Restart(false);
             if (UnityEngine.InputSystem.Keyboard.current?.escapeKey.wasPressedThisFrame == true) PauseMenu.Toggle();
         }

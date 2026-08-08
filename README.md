@@ -15,7 +15,7 @@ Open the repository folder in Unity Hub. The generated scenes and prefabs are co
 
 - `A` / Left Arrow — move left
 - `D` / Right Arrow — move right
-- `Space` — jump (release early for a shorter jump)
+- `Space` — jump (fixed height regardless of button hold duration)
 - `R` — restart the current stage
 - `Escape` — pause / resume
 
@@ -62,6 +62,9 @@ At stage completion, `PlayerBehaviorTracker` logs JSON to the Unity Console with
 ## Known limitations
 
 - Visuals and audio are deliberately prototype-level; no external copyrighted art is used.
+- Falling below the stage boundary is lethal and restarts the current stage immediately.
+- Terrain uses original filled tile panels, inset faces, joints, and bright top edges; no reference-game art is included.
+- Jump ascent and landing are tuned to complete in roughly half the previous time while preserving the reduced jump height; falling obstacles use doubled gravity.
 - Procedural layouts have been compile-validated, but individual difficulty still benefits from hands-on tuning in the Unity Editor.
 - Behavior data is Console-only and is not persisted between play sessions.
 - Placeholder launcher does not spawn projectiles; the moving-platform placeholder provides only simple ping-pong motion.

@@ -95,7 +95,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MindfulRun.Obstacles.CrushingBlockTrap
   block: {fileID: 7145048076178670799}
   warningShadow: {fileID: 4757909021336653325}
-  warningDuration: 0.5
+  warningDuration: 0.06
   requiredPlayerSpeed: 0
 --- !u!1 &1006464533552758443
 GameObject:
@@ -182,7 +182,7 @@ SpriteRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 0805fddda70455c4186af5528b99df52, type: 3}
-  m_Color: {r: 0.8, g: 0.05, b: 0.05, a: 1}
+  m_Color: {r: 0.96, g: 0.16, b: 0.24, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

@@ -17,19 +17,19 @@ namespace MindfulRun.Player
         [SerializeField] float jumpSpeed = 13.5f;
         [SerializeField] float coyoteTime = .12f;
         [SerializeField] float jumpBufferTime = .12f;
-        [SerializeField] float jumpCutMultiplier = .45f;
-        [SerializeField] float fallGravityMultiplier = 2.2f;
-        [SerializeField] float maxFallSpeed = 20f;
+        [SerializeField] float riseGravityMultiplier = 4f;
+        [SerializeField] float fallGravityMultiplier = 8.8f;
+        [SerializeField] float maxFallSpeed = 40f;
         [Header("Grounding")]
         [SerializeField] LayerMask groundMask = ~0;
-        [SerializeField] Vector2 groundCheckSize = new(.55f, .12f);
-        [SerializeField] float groundCheckDistance = .05f;
+        [SerializeField] Vector2 groundCheckSize = new(.12f, .035f);
+        [SerializeField] float groundCheckDistance = .025f;
 
         Rigidbody2D body;
         Collider2D bodyCollider;
         StickFigureAnimator figure;
         float moveInput, lastGroundedAt = float.NegativeInfinity, jumpPressedAt = float.NegativeInfinity;
-        bool jumpHeld, controlsEnabled = true, wasGrounded;
+        bool controlsEnabled = true, wasGrounded;
         public bool IsGrounded { get; private set; }
         public bool ControlsEnabled => controlsEnabled;
         public float HorizontalInput => moveInput;
@@ -53,7 +53,6 @@ namespace MindfulRun.Player
                 body.linearVelocity = new Vector2(body.linearVelocity.x, jumpSpeed);
                 jumpPressedAt = float.NegativeInfinity; lastGroundedAt = float.NegativeInfinity; Jumped?.Invoke();
             }
-            if (!jumpHeld && body.linearVelocity.y > 0f) body.linearVelocity = new Vector2(body.linearVelocity.x, body.linearVelocity.y * jumpCutMultiplier);
             figure?.SetMotion(body.linearVelocity, IsGrounded, IsGrounded && !wasGrounded);
             wasGrounded = IsGrounded;
         }
@@ -64,17 +63,17 @@ namespace MindfulRun.Player
             float rate = Mathf.Abs(moveInput) > .01f ? (IsGrounded ? groundAcceleration : airAcceleration) : (IsGrounded ? groundDeceleration : airDeceleration);
             float x = Mathf.MoveTowards(body.linearVelocity.x, target, rate * Time.fixedDeltaTime);
             float y = Mathf.Max(body.linearVelocity.y, -maxFallSpeed);
-            body.gravityScale = y < 0f ? fallGravityMultiplier : 1f;
+            body.gravityScale = y < 0f ? fallGravityMultiplier : riseGravityMultiplier;
             body.linearVelocity = new Vector2(x, y);
         }
 
         void ReadInput()
         {
-            if (!controlsEnabled || Keyboard.current == null) { moveInput = 0f; jumpHeld = false; return; }
+            if (!controlsEnabled || Keyboard.current == null) { moveInput = 0f; return; }
             var keys = Keyboard.current;
             float next = (keys.dKey.isPressed || keys.rightArrowKey.isPressed ? 1f : 0f) - (keys.aKey.isPressed || keys.leftArrowKey.isPressed ? 1f : 0f);
             if (!Mathf.Approximately(next, moveInput) && Mathf.Abs(next) > .01f) MovementInput?.Invoke(next);
-            moveInput = next; jumpHeld = keys.spaceKey.isPressed;
+            moveInput = next;
             if (keys.spaceKey.wasPressedThisFrame) jumpPressedAt = Time.time;
         }
 

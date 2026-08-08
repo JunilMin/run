@@ -7,7 +7,7 @@ namespace MindfulRun.Obstacles
     {
         [SerializeField] Rigidbody2D block;
         [SerializeField] SpriteRenderer warningShadow;
-        [SerializeField] float warningDuration = .5f;
+        [SerializeField] float warningDuration = .06f;
         [SerializeField] float requiredPlayerSpeed = 0f;
         bool triggered;
         void OnTriggerEnter2D(Collider2D other)
@@ -17,7 +17,7 @@ namespace MindfulRun.Obstacles
         }
         IEnumerator Drop()
         {
-            triggered=true; if(warningShadow)warningShadow.enabled=true; yield return new WaitForSeconds(warningDuration); if(warningShadow)warningShadow.enabled=false; block.bodyType=RigidbodyType2D.Dynamic; block.gravityScale=4;
+            triggered=true; if(warningShadow)warningShadow.enabled=true; yield return new WaitForSeconds(warningDuration); if(warningShadow)warningShadow.enabled=false; block.bodyType=RigidbodyType2D.Dynamic; block.gravityScale=8;
         }
     }
 }
