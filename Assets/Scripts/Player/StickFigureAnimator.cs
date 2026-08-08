@@ -19,7 +19,7 @@ namespace MindfulRun.Player
             landPulse = Mathf.Max(0, landPulse - Time.deltaTime);
             torso.localScale = new Vector3(1, landPulse > 0 ? .85f : 1f, 1);
         }
-        public void PlayDeath() { dead = true; transform.localRotation = Quaternion.Euler(0, 0, 82); foreach (var r in renderers) r.color = new Color(.65f, .03f, .03f); }
+        public void PlayDeath() { dead = true; transform.localRotation = Quaternion.Euler(0, 0, 82); foreach (var r in renderers) r.color = new Color(.96f, .16f, .24f); }
         static void SetZ(Transform t, float angle) { if (t) t.localRotation = Quaternion.Euler(0, 0, angle); }
     }
 }

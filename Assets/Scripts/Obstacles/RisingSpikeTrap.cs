@@ -7,9 +7,9 @@ namespace MindfulRun.Obstacles
     {
         [SerializeField] Transform spikes;
         [SerializeField] SpriteRenderer warning;
-        [SerializeField] float warningDuration = .3f;
+        [SerializeField] float warningDuration = .04f;
         [SerializeField] float riseDistance = 1.6f;
-        [SerializeField] float riseSpeed = 13f;
+        [SerializeField] float riseSpeed = 24f;
         [SerializeField] bool triggerOnJump = true;
         bool triggered; Vector3 hiddenPosition;
         void Awake() { hiddenPosition = spikes.localPosition; if (warning) warning.enabled = false; }
